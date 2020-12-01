@@ -1,6 +1,6 @@
 pub mod config;
 pub mod dns_utils;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use clap::{App, Arg};
 use config::Config;
 use dns_utils::{create_dns_query, fetch_odoh_config, parse_dns_answer};
@@ -10,7 +10,7 @@ use odoh_rs::protocol::{
 };
 use reqwest::{
     header::{HeaderMap, ACCEPT, CACHE_CONTROL, CONTENT_TYPE},
-    Client, Response,
+    Client, Response, StatusCode,
 };
 use std::env;
 use url::Url;
@@ -93,6 +93,12 @@ impl ClientSession {
 
     /// Parse the received response from the resolver and print the answer.
     pub async fn parse_response(&self, resp: Response) -> Result<()> {
+        if resp.status() != StatusCode::OK {
+            return Err(anyhow!(
+                "query failed with response status code {}",
+                resp.status().as_u16()
+            ));
+        }
         let data = resp.bytes().await?;
         let response_body = parse_received_response(
             &self.client_secret.clone().unwrap(),

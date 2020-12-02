@@ -1002,7 +1002,7 @@ checksum = "1ab52be62400ca80aa00285d25253d7f7c437b7375c4de678f5405d3afe82ca5"
 
 [[package]]
 name = "odoh-client-rs"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "clap",
@@ -1022,9 +1022,9 @@ dependencies = [
 
 [[package]]
 name = "odoh-rs"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0befe7f196fac0b368e2228176a07c958b7463b0172733f91d2e10e0ef0b995"
+checksum = "c11ac0c716caae1c92764db66d27b4ae71ad714b996f48353fecdf211f3388b7"
 dependencies = [
  "aes-gcm",
  "anyhow",

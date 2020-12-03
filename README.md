@@ -3,7 +3,7 @@
 [![Latest Version]][crates.io]
 
 [Latest Version]: https://img.shields.io/crates/v/odoh-client-rs.svg
-[crates.io]: https://crates.io/crates/odoh-rs
+[crates.io]: https://crates.io/crates/odoh-client-rs
 
 [odoh-client-rs] is a CLI Rust client that can be used to access resolvers running [Oblivious DNS over HTTPS (ODoH) protocol draft-03]. It is built using the [odoh-rs] library. It is mainly intended for testing as it can only send one request at a time. To run an actual ODoH client, see [cloudflared].
 

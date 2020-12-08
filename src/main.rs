@@ -21,6 +21,7 @@ const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
 const QUERY_PATH: &str = "/dns-query";
+const PROXY_PATH: &str = "/proxy";
 
 #[derive(Clone, Debug)]
 struct ClientSession {
@@ -40,7 +41,7 @@ impl ClientSession {
         let proxy;
         if let Some(p) = &config.server.proxy {
             let mut proxy_raw = Url::parse(p)?;
-            proxy_raw.set_path(QUERY_PATH);
+            proxy_raw.set_path(PROXY_PATH);
             proxy = Some(proxy_raw);
         } else {
             proxy = None;

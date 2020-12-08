@@ -12,6 +12,7 @@ categories = [ "network-programming", "cryptography" ]
 [dependencies]
 anyhow = "1"
 clap = "2.33.2"
+futures = "0.3"
 hex = "0.4.2"
 lazy_static = "1.4"
 odoh-rs = "0.1.5"
@@ -21,6 +22,6 @@ reqwest = { version = "0.10", features = [ "cookies" ] }
 serde = { version = "1.0.115", features = [ "derive" ] }
 tokio = { version = "0.2", features = [ "full" ] }
 toml = "0.5"
-trust-dns-client = "0.19.5"
-trust-dns-proto = "0.19.5"
+trust-dns-client = "0.19.6"
+trust-dns-proto = "0.19.6"
 url = "2.1.1"

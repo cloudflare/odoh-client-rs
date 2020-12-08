@@ -1,11 +1,14 @@
 use anyhow::{anyhow, Result};
+use futures::future::{self, Either};
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::str::FromStr;
-use std::thread;
-use trust_dns_client::client::{Client, SyncClient};
+use tokio::net::UdpSocket;
 use trust_dns_client::rr::{DNSClass, Name, RData, RecordType};
-use trust_dns_client::udp::UdpClientConnection;
+use trust_dns_client::{
+    client::{AsyncClient, ClientHandle},
+    udp::UdpClientStream,
+};
 use trust_dns_proto::op::{message::Message, query::Query};
 
 const CONFIG_RESOLVER: &str = "1.1.1.1:53";
@@ -49,35 +52,37 @@ pub fn parse_dns_answer(msg: &[u8]) -> Result<()> {
 
 /// Fetches `odohconfig` by querying the target server for HTTPS records.
 /// Currently supports `odoh.cloudflare-dns.com.`.
-pub fn fetch_odoh_config(target: &str) -> Result<Vec<u8>> {
+pub async fn fetch_odoh_config(target: &str) -> Result<Vec<u8>> {
     target
         .find(CONFIG_DOMAIN)
         .ok_or_else(|| anyhow!("Target not supported"))?;
+
     let address = CONFIG_RESOLVER.parse()?;
-    let conn = UdpClientConnection::new(address)?;
-    let client = SyncClient::new(conn);
-    let name = Name::from_str("odoh.cloudflare-dns.com")?;
-    let response = thread::spawn(move || {
-        client
-            .query(&name, DNSClass::IN, RecordType::Unknown(65))
-            .unwrap()
-    })
-    .join()
-    .expect("odohconfig query thread panicked!");
+    let conn = UdpClientStream::<UdpSocket>::new(address);
+    let (mut client, bg) = AsyncClient::connect(conn).await?;
+    let name = Name::from_str(CONFIG_DOMAIN)?;
+    let query = client.query(name, DNSClass::IN, RecordType::Unknown(HTTPS_RECORD_CODE));
+    let response = match future::select(query, bg).await {
+        Either::Left((dns_resp, _)) => dns_resp?,
+        _ => {
+            return Err(anyhow!(
+                "odohconfig fetch failed, dns response was not returned"
+            ))
+        }
+    };
+
     let answer = response.answers()[0].rdata();
-    let odohconfig;
     if let RData::Unknown { code, rdata } = answer.clone() {
         assert_eq!(code, HTTPS_RECORD_CODE);
         let data = rdata
             .anything()
             .ok_or_else(|| anyhow!("odohconfig fetch failed, dns response buf is empty"))?;
-        odohconfig = odohconfig_from_https(data)?;
+        odohconfig_from_https(data)
     } else {
         return Err(anyhow!(
             "Incorrect record type returned, could not fetch odohconfig"
         ));
     }
-    Ok(odohconfig)
 }
 
 /// Parses https record and returns odohconfig value.

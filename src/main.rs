@@ -1,6 +1,6 @@
 pub mod config;
 pub mod dns_utils;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use clap::{App, Arg};
 use config::Config;
 use dns_utils::{create_dns_query, fetch_odoh_config, parse_dns_answer};
@@ -21,7 +21,6 @@ const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
 const QUERY_PATH: &str = "/dns-query";
-const PROXY_PATH: &str = "/proxy";
 
 #[derive(Clone, Debug)]
 struct ClientSession {
@@ -35,18 +34,15 @@ struct ClientSession {
 
 impl ClientSession {
     /// Create a new ClientSession
-    pub fn new(config: Config) -> Result<Self> {
+    pub async fn new(config: Config) -> Result<Self> {
         let mut target = Url::parse(&config.server.target)?;
         target.set_path(QUERY_PATH);
-        let proxy;
-        if let Some(p) = &config.server.proxy {
-            let mut proxy_raw = Url::parse(p)?;
-            proxy_raw.set_path(PROXY_PATH);
-            proxy = Some(proxy_raw);
+        let proxy = if let Some(p) = &config.server.proxy {
+            Url::parse(p).ok()
         } else {
-            proxy = None;
-        }
-        let odohconfig = fetch_odoh_config(&config.server.target)?;
+            None
+        };
+        let odohconfig = fetch_odoh_config(&config.server.target).await?;
         let target_config = get_supported_config(&odohconfig)?;
         Ok(Self {
             client: Client::new(),
@@ -79,16 +75,20 @@ impl ClientSession {
         headers.insert(ACCEPT, ODOH_HTTP_HEADER.parse()?);
         headers.insert(CACHE_CONTROL, "no-cache, no-store".parse()?);
         let query = [
-            ("targethost", self.target.host_str().unwrap()),
+            (
+                "targethost",
+                self.target
+                    .host_str()
+                    .context("Target host is not a valid host string")?,
+            ),
             ("targetpath", QUERY_PATH),
         ];
-        let builder;
-        if let Some(p) = &self.proxy {
-            builder = self.client.post(p.clone()).headers(headers).query(&query)
+        let builder = if let Some(p) = &self.proxy {
+            self.client.post(p.clone()).headers(headers).query(&query)
         } else {
-            builder = self.client.post(self.target.clone()).headers(headers)
-        }
-        let resp = builder.body(request.to_vec()).send().await.unwrap();
+            self.client.post(self.target.clone()).headers(headers)
+        };
+        let resp = builder.body(request.to_vec()).send().await?;
         Ok(resp)
     }
 
@@ -145,7 +145,7 @@ async fn main() -> Result<()> {
     let config = Config::from_path(config_file)?;
     let domain = matches.value_of("domain").unwrap();
     let qtype = matches.value_of("type").unwrap();
-    let mut session = ClientSession::new(config.clone())?;
+    let mut session = ClientSession::new(config.clone()).await?;
     let request = session.create_request(domain, qtype)?;
     let response = session.send_request(&request).await?;
     session.parse_response(response).await?;

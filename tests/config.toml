@@ -1,4 +1,4 @@
 [server]
 # proxy can be commented out, however this will defeat the purpose of using ODoH.
-#proxy = "http://localhost:8081"
+proxy = "https://odoh1.surfdomeinen.nl/proxy"
 target = "https://odoh.cloudflare-dns.com"

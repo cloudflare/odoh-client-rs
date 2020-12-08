@@ -14,7 +14,7 @@
 
 # Example usage
 
-The proxy and resolver are configured using the file specified by the `-c` flag, e.g., `-c config.toml`. The default configuration can be found at `tests/config.toml`. It uses https://odoh.cloudflare-dns.com, i.e., 1.1.1.1, as the target resolver. The client does not use a proxy by default, and instead makes requests to the target resolver directly. To get the full privacy benefits of ODoH, it's necessary to specify a proxy in the configuration file.
+The proxy and resolver are configured using the file specified by the `-c` flag, e.g., `-c config.toml`. The default configuration can be found at `tests/config.toml`. It uses https://odoh.cloudflare-dns.com, i.e., 1.1.1.1, as the target resolver.
 
 ```bash
 $ cargo run -- example.com AAAA

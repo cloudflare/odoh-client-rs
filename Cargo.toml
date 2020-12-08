@@ -25,3 +25,6 @@ toml = "0.5"
 trust-dns-client = "0.19.6"
 trust-dns-proto = "0.19.6"
 url = "2.1.1"
+
+[dev-dependencies]
+assert_cmd = "1"

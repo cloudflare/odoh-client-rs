@@ -17,5 +17,5 @@
 Configuration for proxy and resolver can be done via a config file that can be specified with `-c config.toml`. The default configuration can be found at `tests/config.toml` and doesn't use a proxy, and uses https://odoh.cloudflare-dns.com aka 1.1.1.1 as the target resolver.  
 
 ```bash
-$ cargo run -- thisiswhyimbroke.com AAAA
+$ cargo run -- example.com AAAA
 ```

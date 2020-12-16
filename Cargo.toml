@@ -1,6 +1,6 @@
 [package]
 name = "odoh-client-rs"
-version = "0.1.4"
+version = "0.1.5"
 authors = [ "Tanya Verma <tverma@cloudflare.com>" ]
 edition = "2018"
 license = "BSD-2-Clause"
@@ -15,11 +15,11 @@ clap = "2.33.2"
 futures = "0.3"
 hex = "0.4.2"
 lazy_static = "1.4"
-odoh-rs = "0.1.5"
+odoh-rs = "0.1.6"
 rand = "0.7"
 regex = "1"
 reqwest = { version = "0.10", features = [ "cookies" ] }
-serde = { version = "1.0.115", features = [ "derive" ] }
+serde = { version = "1.0", features = [ "derive" ] }
 tokio = { version = "0.2", features = [ "full" ] }
 toml = "0.5"
 trust-dns-client = "0.19.6"

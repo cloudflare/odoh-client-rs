@@ -14,7 +14,7 @@ use trust_dns_proto::op::{message::Message, query::Query};
 const CONFIG_RESOLVER: &str = "1.1.1.1:53";
 const CONFIG_DOMAIN: &str = "odoh.cloudflare-dns.com";
 const HTTPS_RECORD_CODE: u16 = 65;
-const ODOH_VERSION: &str = "ff03";
+const ODOH_VERSION: &str = "ff04";
 
 /// Matches "TYPExxx..", where x is a number, returns xxx... parsed as u16
 /// Example: "TYPE45" returns 45
@@ -144,15 +144,15 @@ mod test {
     #[test]
     fn test_odohconfig_parser() {
         // if odohconfig string does not contain multiple ODOH_VERSION
-        let mut data = "00010000010003026832000400086810f8f96810f9f9000600202606470000000000000000006810f8f92606470000000000000000006810f9f98001002e002cff0300280020000100010020f150567d5bfd7ffbb20f52b73cce923f0654e37265d7065dc5d6bfc8912b3e5e";
+        let mut data = "00010000010003026832000400086810f8f96810f9f9000600202606470000000000000000006810f8f92606470000000000000000006810f9f98001002e002cff0400280020000100010020f150567d5bfd7ffbb20f52b73cce923f0654e37265d7065dc5d6bfc8912b3e5e";
         let mut odohconfig = odohconfig_from_https(&hex::decode(data).unwrap()).unwrap();
-        let mut expected_odohconfig = "002cff0300280020000100010020f150567d5bfd7ffbb20f52b73cce923f0654e37265d7065dc5d6bfc8912b3e5e";
+        let mut expected_odohconfig = "002cff0400280020000100010020f150567d5bfd7ffbb20f52b73cce923f0654e37265d7065dc5d6bfc8912b3e5e";
         assert_eq!(expected_odohconfig, hex::encode(odohconfig));
 
         // if odohconfig string contains multiple ODOH_VERSION
-        data = "00010000010003026832000400086810f8f96810f9f9000600202606470000000000000000006810f8f92606470000000000000000006810f9f98001002e002cff0300280020000100010020128dfb25d235708df7031ff036bd82ec061c0877835186321e0c03e24f93213a";
+        data = "00010000010003026832000400086810f8f96810f9f9000600202606470000000000000000006810f8f92606470000000000000000006810f9f98001002e002cff0400280020000100010020128dfb25d235708df7031ff046bd82ec061c0877835186321e0c03e24f93213a";
         odohconfig = odohconfig_from_https(&hex::decode(data).unwrap()).unwrap();
-        expected_odohconfig = "002cff0300280020000100010020128dfb25d235708df7031ff036bd82ec061c0877835186321e0c03e24f93213a";
+        expected_odohconfig = "002cff0400280020000100010020128dfb25d235708df7031ff046bd82ec061c0877835186321e0c03e24f93213a";
         assert_eq!(expected_odohconfig, hex::encode(odohconfig));
     }
 }

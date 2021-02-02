@@ -15,6 +15,7 @@ const CONFIG_RESOLVER: &str = "1.1.1.1:53";
 const CONFIG_DOMAIN: &str = "odoh.cloudflare-dns.com";
 const HTTPS_RECORD_CODE: u16 = 65;
 const ODOH_VERSION: &str = "ff04";
+const WELL_KNOWN: &str = "/.well-known/odohconfigs";
 
 /// Matches "TYPExxx..", where x is a number, returns xxx... parsed as u16
 /// Example: "TYPE45" returns 45
@@ -52,7 +53,16 @@ pub fn parse_dns_answer(msg: &[u8]) -> Result<()> {
 
 /// Fetches `odohconfig` by querying the target server for HTTPS records.
 /// Currently supports `odoh.cloudflare-dns.com.`.
-pub async fn fetch_odoh_config(target: &str) -> Result<Vec<u8>> {
+/// If well known endpoint is to be used, fetches `odohconfig` using a `GET` instead.
+pub async fn fetch_odoh_config(target: &str, use_well_known: bool) -> Result<Vec<u8>> {
+    if use_well_known {
+        let data = reqwest::get(&format!("{}{}", target, WELL_KNOWN))
+            .await?
+            .bytes()
+            .await?;
+        return odohconfig_from_https(&data);
+    }
+
     target
         .find(CONFIG_DOMAIN)
         .ok_or_else(|| anyhow!("Target not supported"))?;

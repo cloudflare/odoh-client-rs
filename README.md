@@ -18,3 +18,9 @@ The proxy and resolver are configured using the file specified by the `-c` flag,
 ```bash
 $ cargo run -- example.com AAAA
 ```
+
+Instead of using `HTTPS` DNS records to retrieve configs, it can be configured to use a well known endpoint to retrieve the configs via `GET` requests. This can be done by setting the `-w` flag:
+
+```bash
+$ cargo run -- example.com A -w
+```

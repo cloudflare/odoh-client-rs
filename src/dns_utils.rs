@@ -81,7 +81,11 @@ pub async fn fetch_odoh_config(target: &str, use_well_known: bool) -> Result<Vec
         }
     };
 
-    let answer = response.answers()[0].rdata();
+    let answer = response
+        .answers()
+        .get(0)
+        .ok_or_else(|| anyhow!("odohconfig fetch failed, dns response is empty"))?
+        .rdata();
     if let RData::Unknown { code, rdata } = answer.clone() {
         assert_eq!(code, HTTPS_RECORD_CODE);
         let data = rdata

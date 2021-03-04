@@ -4,9 +4,9 @@ mod tests {
 
     #[test]
     fn integration_test() {
-        let mut cmd = Command::cargo_bin("odoh-client-rs").unwrap();
-        let assert = cmd.args(&["google.com", "A"]).assert();
-        assert.success();
+        // let mut cmd = Command::cargo_bin("odoh-client-rs").unwrap();
+        // let assert = cmd.args(&["google.com", "A"]).assert();
+        // assert.success();
 
         cmd = Command::cargo_bin("odoh-client-rs").unwrap();
 

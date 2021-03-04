@@ -734,9 +734,9 @@ dependencies = [
 
 [[package]]
 name = "hpke"
-version = "0.4.3"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04952fb834f409ba3ecf09455461da768da4aed6cf2a4cc7eeb35e3725848f85"
+checksum = "6fcb6bb756d599167a55c64072bf8abd89e87e419e7298955a6a68fbd736ce64"
 dependencies = [
  "aead",
  "aes-gcm",
@@ -1012,7 +1012,7 @@ dependencies = [
 
 [[package]]
 name = "odoh-client-rs"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1034,9 +1034,9 @@ dependencies = [
 
 [[package]]
 name = "odoh-rs"
-version = "0.1.8"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c703f198a7b08abbaa580003c3e5699330cbf815e318cfcb78545eac2e0063d8"
+checksum = "54fad4f4beb827485c99b7445c05c7e112a2a0138184c04a36fa281b4b1c9d38"
 dependencies = [
  "aes-gcm",
  "anyhow",

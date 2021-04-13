@@ -14,7 +14,7 @@ use trust_dns_proto::op::{message::Message, query::Query};
 const CONFIG_RESOLVER: &str = "1.1.1.1:53";
 const CONFIG_DOMAIN: &str = "odoh.cloudflare-dns.com";
 const HTTPS_RECORD_CODE: u16 = 65;
-const ODOH_VERSION: &str = "ff04";
+const ODOH_VERSION: &str = "ff06";
 const WELL_KNOWN: &str = "/.well-known/odohconfigs";
 
 /// Matches "TYPExxx..", where x is a number, returns xxx... parsed as u16

@@ -15,8 +15,8 @@ clap = "2.33"
 futures = "0.3"
 hex = "0.4"
 lazy_static = "1.4"
-odoh-rs = "0.1.8"
-rand = "0.7"
+odoh-rs = { git = "https://github.com/cloudflare/odoh-rs" }
+rand = "0.8.3"
 regex = "1"
 reqwest = { version = "0.11", features = [ "cookies" ] }
 serde = { version = "1.0", features = [ "derive" ] }

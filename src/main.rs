@@ -3,7 +3,7 @@ pub mod dns_utils;
 use anyhow::{anyhow, Context, Result};
 use clap::{App, Arg};
 use config::Config;
-use dns_utils::{create_dns_query, fetch_odoh_config, parse_dns_answer};
+use dns_utils::{create_dns_query, parse_dns_answer};
 use odoh_rs::protocol::{
     create_query_msg, get_supported_config, parse_received_response, ObliviousDoHConfigContents,
     ObliviousDoHQueryBody, ODOH_HTTP_HEADER,
@@ -21,6 +21,7 @@ const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
 const QUERY_PATH: &str = "/dns-query";
+const WELL_KNOWN: &str = "/.well-known/odohconfigs";
 
 #[derive(Clone, Debug)]
 struct ClientSession {
@@ -34,7 +35,7 @@ struct ClientSession {
 
 impl ClientSession {
     /// Create a new ClientSession
-    pub async fn new(config: Config, use_well_known: bool) -> Result<Self> {
+    pub async fn new(config: Config) -> Result<Self> {
         let mut target = Url::parse(&config.server.target)?;
         target.set_path(QUERY_PATH);
         let proxy = if let Some(p) = &config.server.proxy {
@@ -42,8 +43,14 @@ impl ClientSession {
         } else {
             None
         };
-        let odohconfig = fetch_odoh_config(&config.server.target, use_well_known).await?;
-        let target_config = get_supported_config(&odohconfig)?;
+
+        // fetch `odohconfigs` by querying well known endpoint using GET request
+        let odohconfigs = reqwest::get(&format!("{}{}", config.server.target, WELL_KNOWN))
+            .await?
+            .bytes()
+            .await?;
+        let target_config = get_supported_config(&odohconfigs)?;
+
         Ok(Self {
             client: Client::new(),
             target,
@@ -137,13 +144,6 @@ async fn main() -> Result<()> {
                 .required(true)
                 .index(2),
         )
-        .arg(
-            Arg::with_name("use_well_known")
-                .short("w")
-                .help("Use well known API endpoint to GET odohconfig")
-                .required(false)
-                .takes_value(false),
-        )
         .get_matches();
 
     let config_file = matches
@@ -152,8 +152,7 @@ async fn main() -> Result<()> {
     let config = Config::from_path(config_file)?;
     let domain = matches.value_of("domain").unwrap();
     let qtype = matches.value_of("type").unwrap();
-    let mut session =
-        ClientSession::new(config.clone(), matches.is_present("use_well_known")).await?;
+    let mut session = ClientSession::new(config.clone()).await?;
     let request = session.create_request(domain, qtype)?;
     let response = session.send_request(&request).await?;
     session.parse_response(response).await?;

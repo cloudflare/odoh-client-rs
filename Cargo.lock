@@ -159,16 +159,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
-name = "bincode2"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f49f6183038e081170ebbbadee6678966c7d54728938a3e7de7f4e780770318f"
-dependencies = [
- "byteorder",
- "serde",
-]
-
-[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -734,9 +724,9 @@ dependencies = [
 
 [[package]]
 name = "hpke"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fcb6bb756d599167a55c64072bf8abd89e87e419e7298955a6a68fbd736ce64"
+checksum = "dee10a1b0e80de6480856bcd0addb21dd0f52c982c7809bde53754b7c1a9d74d"
 dependencies = [
  "aead",
  "aes-gcm",
@@ -746,7 +736,7 @@ dependencies = [
  "generic-array",
  "hkdf",
  "p256",
- "rand 0.7.3",
+ "rand 0.8.3",
  "sha2",
  "subtle",
  "x25519-dalek",
@@ -1012,7 +1002,7 @@ dependencies = [
 
 [[package]]
 name = "odoh-client-rs"
-version = "0.1.9"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1021,7 +1011,7 @@ dependencies = [
  "hex",
  "lazy_static",
  "odoh-rs",
- "rand 0.7.3",
+ "rand 0.8.3",
  "regex",
  "reqwest",
  "serde",
@@ -1034,18 +1024,16 @@ dependencies = [
 
 [[package]]
 name = "odoh-rs"
-version = "0.1.11"
+version = "1.0.0-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdc2bf90cd0b533e7570dd48fad58fad76e127bb311b71563d429f0284ebb97c"
+checksum = "9fa43633ab3b53ce1faae165041fc715625bcb7bf5162bd59a102cfaeb1db413"
 dependencies = [
  "aes-gcm",
- "anyhow",
- "bincode2",
+ "bytes 1.0.1",
  "hkdf",
  "hpke",
- "rand 0.7.3",
- "serde",
- "serde_repr",
+ "rand 0.8.3",
+ "thiserror",
 ]
 
 [[package]]
@@ -1556,17 +1544,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "serde_repr"
-version = "0.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dc6b7951b17b051f3210b063f12cc17320e2fe30ae05b0fe2a3abb068551c76"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

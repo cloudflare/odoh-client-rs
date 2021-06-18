@@ -4,10 +4,9 @@ use anyhow::{anyhow, Context, Result};
 use clap::{App, Arg};
 use config::Config;
 use dns_utils::{create_dns_query, parse_dns_answer};
-use odoh_rs::protocol::{
-    create_query_msg, get_supported_config, parse_received_response, ObliviousDoHConfigContents,
-    ObliviousDoHQueryBody, ODOH_HTTP_HEADER,
-};
+use odoh_rs::*;
+use rand::rngs::StdRng;
+use rand::SeedableRng;
 use reqwest::{
     header::{HeaderMap, ACCEPT, CACHE_CONTROL, CONTENT_TYPE},
     Client, Response, StatusCode,
@@ -28,9 +27,9 @@ struct ClientSession {
     pub client: Client,
     pub target: Url,
     pub proxy: Option<Url>,
-    pub client_secret: Option<Vec<u8>>,
+    pub client_secret: Option<[u8; 16]>,
     pub target_config: ObliviousDoHConfigContents,
-    pub query: Option<ObliviousDoHQueryBody>,
+    pub query: Option<ObliviousDoHMessagePlaintext>,
 }
 
 impl ClientSession {
@@ -45,11 +44,16 @@ impl ClientSession {
         };
 
         // fetch `odohconfigs` by querying well known endpoint using GET request
-        let odohconfigs = reqwest::get(&format!("{}{}", config.server.target, WELL_KNOWN))
+        let mut odohconfigs = reqwest::get(&format!("{}{}", config.server.target, WELL_KNOWN))
             .await?
             .bytes()
             .await?;
-        let target_config = get_supported_config(&odohconfigs)?;
+        let configs: ObliviousDoHConfigs = parse(&mut odohconfigs).context("invalid configs")?;
+        let target_config = configs
+            .into_iter()
+            .next()
+            .context("no available config")?
+            .into();
 
         Ok(Self {
             client: Client::new(),
@@ -65,11 +69,16 @@ impl ClientSession {
     pub fn create_request(&mut self, domain: &str, qtype: &str) -> Result<Vec<u8>> {
         // create a DNS message
         let dns_msg = create_dns_query(domain, qtype)?;
-        let query = ObliviousDoHQueryBody::new(&dns_msg, Some(1));
+        let query = ObliviousDoHMessagePlaintext::new(&dns_msg, 1);
         self.query = Some(query.clone());
-        let (oblivious_query, client_secret) = create_query_msg(&self.target_config, &query)?;
+        let mut rng = StdRng::from_entropy();
+        let (oblivious_query, client_secret) = encrypt_query(&query, &self.target_config, &mut rng)
+            .context("failed to encrypt query")?;
+        let query_body = compose(&oblivious_query)
+            .context("failed to compose query body")?
+            .freeze();
         self.client_secret = Some(client_secret);
-        Ok(oblivious_query)
+        Ok(query_body.to_vec())
     }
 
     /// Set headers and build an HTTP request to send the oblivious query to the proxy/target.
@@ -107,13 +116,15 @@ impl ClientSession {
                 resp.status().as_u16()
             ));
         }
-        let data = resp.bytes().await?;
-        let response_body = parse_received_response(
-            &self.client_secret.clone().unwrap(),
-            &data,
+        let mut data = resp.bytes().await?;
+        let response_body = parse(&mut data).context("failed to parse response body")?;
+        let response = decrypt_response(
             &self.query.clone().unwrap(),
-        )?;
-        parse_dns_answer(&response_body.dns_msg)?;
+            &response_body,
+            self.client_secret.clone().unwrap(),
+        )
+        .context("failed to decrypt response")?;
+        parse_dns_answer(&response.into_msg())?;
         Ok(())
     }
 }

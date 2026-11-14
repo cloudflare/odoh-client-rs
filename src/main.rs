@@ -134,7 +134,7 @@ impl ClientSession {
         let response = decrypt_response(
             &self.query.clone().unwrap(),
             &response_body,
-            self.client_secret.clone().unwrap(),
+            self.client_secret.unwrap(),
         )
         .context("failed to decrypt response")?;
         parse_dns_answer(&response.into_msg())?;

@@ -5,8 +5,7 @@ use clap::{App, Arg};
 use config::Config;
 use dns_utils::{create_dns_query, parse_dns_answer};
 use odoh_rs::*;
-use rand::rngs::StdRng;
-use rand::SeedableRng;
+use rand::rng;
 use reqwest::{
     header::{HeaderMap, ACCEPT, CACHE_CONTROL, CONTENT_TYPE},
     Client, Response, StatusCode,
@@ -71,7 +70,7 @@ impl ClientSession {
         let dns_msg = create_dns_query(domain, qtype)?;
         let query = ObliviousDoHMessagePlaintext::new(&dns_msg, 1);
         self.query = Some(query.clone());
-        let mut rng = StdRng::from_entropy();
+        let mut rng = rng();
         let (oblivious_query, client_secret) = encrypt_query(&query, &self.target_config, &mut rng)
             .context("failed to encrypt query")?;
         let query_body = compose(&oblivious_query)

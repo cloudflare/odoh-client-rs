@@ -1,4 +1,5 @@
 [server]
 # proxy can be commented out, however this will defeat the purpose of using ODoH.
-proxy = "https://odoh1.surfdomeinen.nl/proxy"
+proxy = "https://odoh-relay.edgecompute.app"
 target = "https://odoh.cloudflare-dns.com"
+#target = "https://odoh.crypto.sx"

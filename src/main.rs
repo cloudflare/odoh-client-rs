@@ -18,7 +18,6 @@ const PKG_AUTHORS: &str = env!("CARGO_PKG_AUTHORS");
 const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 const PKG_DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
-const QUERY_PATH: &str = "/dns-query";
 const WELL_KNOWN: &str = "/.well-known/odohconfigs";
 
 #[derive(Clone, Debug)]
@@ -34,12 +33,13 @@ struct ClientSession {
 impl ClientSession {
     /// Create a new ClientSession
     pub async fn new(config: Config) -> Result<Self> {
-        let mut target = Url::parse(&config.server.target)?;
+        let target = Url::parse(&config.server.target)?;
         // RFC 9230 §4.1: the scheme of the Target URI MUST be "https".
         if target.scheme() != "https" {
             return Err(anyhow!("target URL must use https"));
         }
-        target.set_path(QUERY_PATH);
+        // RFC 9230 §4.1: the Target URI, including its path, is where the target
+        // is accessible, so it is used exactly as configured.
         let proxy = match &config.server.proxy {
             Some(p) => {
                 let url = Url::parse(p)?;
@@ -52,11 +52,15 @@ impl ClientSession {
             None => None,
         };
 
+        // RFC 9230 leaves config discovery out of scope; deployments publish the
+        // configuration at the well-known URI on the target host.
+        let host = target.host_str().context("target URL has no host")?;
+        let well_known = match target.port() {
+            Some(port) => format!("{}://{}:{}{}", target.scheme(), host, port, WELL_KNOWN),
+            None => format!("{}://{}{}", target.scheme(), host, WELL_KNOWN),
+        };
         // fetch `odohconfigs` by querying well known endpoint using GET request
-        let mut odohconfigs = reqwest::get(&format!("{}{}", config.server.target, WELL_KNOWN))
-            .await?
-            .bytes()
-            .await?;
+        let mut odohconfigs = reqwest::get(&well_known).await?.bytes().await?;
         let configs: ObliviousDoHConfigs = parse(&mut odohconfigs).context("invalid configs")?;
         let target_config = configs
             .into_iter()
@@ -111,7 +115,7 @@ impl ClientSession {
                     .host_str()
                     .context("Target host is not a valid host string")?,
             ),
-            ("targetpath", QUERY_PATH),
+            ("targetpath", self.target.path()),
         ];
         let builder = if let Some(p) = &self.proxy {
             self.client.post(p.clone()).headers(headers).query(&query)

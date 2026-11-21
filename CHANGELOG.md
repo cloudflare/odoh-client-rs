@@ -73,6 +73,13 @@ text):
 - `src/main.rs:123` — removed a redundant `.clone()` on `Option<[u8; 16]>`
   (clippy `clone_on_copy`). This fixes `cargo clippy -- -D warnings`, which is
   a CI step in `.github/workflows/rust.yml`.
+- **Target URI and config discovery**: the Target URI is now used exactly as
+  configured, including its path (e.g. `https://doh.tiar.app/odoh`), and the
+  `targetpath` sent to the proxy is the target's path; previously the client
+  overwrote the path with `/dns-query`. The configuration is fetched from the
+  well-known URI on the target **host**
+  (`https://{host}/.well-known/odohconfigs`) instead of
+  `{target}/.well-known/...`, which failed for targets whose URI has a path.
 
 ---
 

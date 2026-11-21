@@ -75,11 +75,15 @@ default path is `tests/config.toml`.
 # Optional. If omitted, the query is sent directly to the target, which
 # defeats the purpose of using ODoH.
 proxy = "https://odoh-relay.edgecompute.app"
-target = "https://odoh.cloudflare-dns.com"
+target = "https://odoh.cloudflare-dns.com/dns-query"
 ```
 
-- `target` must be an ODoH target that publishes its configuration at
-  `GET {target}/.well-known/odohconfigs`.
+- `target` is the full Target URI, **including its path** (for example
+  `https://odoh.cloudflare-dns.com/dns-query` or `https://doh.tiar.app/odoh`);
+  the query is sent exactly to that URI.
+- The target configuration is fetched from the well-known URI on the target
+  **host**: `GET https://{host}/.well-known/odohconfigs`. (RFC 9230 leaves
+  config discovery out of scope; this is the convention used by deployments.)
 - `proxy` is the ODoH relay. The default is the public relay
   `https://odoh-relay.edgecompute.app`. The relay that was previously
   configured here is no longer available; see `CHANGELOG.md`.
@@ -108,14 +112,14 @@ Arguments:
 ## What a run does
 
 1. Fetches the target configuration with
-   `GET {target}/.well-known/odohconfigs` and uses the first config.
+   `GET https://{target host}/.well-known/odohconfigs` and uses the first config.
 2. Builds the DNS query and encrypts it with HPKE. The query is wrapped in an
    `ObliviousDoHMessagePlaintext` with 1 byte of padding; the protocol version
    `0x0001` is set by `odoh-rs`.
 3. Sends a `POST` with `Content-Type`/`Accept:
    application/oblivious-dns-message` and `Cache-Control: no-cache, no-store`
-   to the proxy, adding `?targethost=<target host>&targetpath=/dns-query`.
-   Without a proxy, the request goes directly to the target.
+   to the proxy, adding `?targethost=<target host>&targetpath=<target path>`.
+   Without a proxy, the request goes directly to the target URI.
 4. Validates the response status and `Content-Type`, decrypts it, and prints
    the answer records as `Response: [...]`.
 

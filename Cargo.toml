@@ -15,15 +15,15 @@ clap = "2.33"
 futures = "0.3"
 hex = "0.4"
 lazy_static = "1.4"
-odoh-rs = "=1.0.0-alpha.1"
-rand = { version = "0.8", features = [ "std_rng" ], default-features = false }
+odoh-rs = "1.0.5"
+rand = { version = "0.10", features = [ "std_rng", "thread_rng" ], default-features = false }
 regex = "1"
-reqwest = { version = "0.11", features = [ "cookies" ] }
+reqwest = "0.11"
 serde = { version = "1.0", features = [ "derive" ] }
 tokio = { version = "1", features = [ "full" ] }
 toml = "0.5"
-trust-dns-client = "0.20.1"
-trust-dns-proto = "0.20.1"
+trust-dns-client = "0.23.2"
+trust-dns-proto = "0.23.2"
 url = "2.2"
 
 [dev-dependencies]
